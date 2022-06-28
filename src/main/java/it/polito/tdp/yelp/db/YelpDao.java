@@ -6,6 +6,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import it.polito.tdp.yelp.model.Business;
 import it.polito.tdp.yelp.model.Review;
@@ -111,7 +112,7 @@ public class YelpDao {
 		}
 	}
 	
-	public List<User> getUsersWithReviews(int minReviews){
+	/*public List<User> getUsersWithReviews(int minReviews){
 		String sql = "SELECT u.*, COUNT(r.review_id) AS numero "
 				+ "FROM reviews AS r, users AS u "
 				+ "WHERE u.user_id = r.user_id "
@@ -145,7 +146,7 @@ public class YelpDao {
 			e.printStackTrace();
 			return null;
 		}
-	}
+	}*/
 	
 	public int calcolaSimilarita(User u1, User u2, int anno) {
 		String sql = "SELECT COUNT(*) AS similarita "
@@ -177,6 +178,36 @@ public class YelpDao {
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return -1;
+		}
+	}
+
+	public List<User> getVertici(Map<String, User> idMap, int minRevisioni) {
+		String sql = "SELECT DISTINCT r.user_id as id "
+				+ "FROM reviews AS r, users AS u "
+				+ "WHERE u.user_id = r.user_id "
+				+ "GROUP BY r.user_id "
+				+ "HAVING COUNT(DISTINCT r.review_id) > ?";
+		List<User> result = new ArrayList<User>();
+		Connection conn = DBConnect.getConnection();
+
+		try {
+			PreparedStatement st = conn.prepareStatement(sql);
+			st.setInt(1, minRevisioni);
+			ResultSet res = st.executeQuery();
+			while (res.next()) {
+
+				User user = idMap.get(res.getString("id"));
+				
+				result.add(user);
+			}
+			res.close();
+			st.close();
+			conn.close();
+			return result;
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return null;
 		}
 	}
 }

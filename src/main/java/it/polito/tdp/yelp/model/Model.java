@@ -1,7 +1,9 @@
  package it.polito.tdp.yelp.model;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.jgrapht.Graph;
 import org.jgrapht.Graphs;
@@ -15,12 +17,19 @@ public class Model {
 	private Graph<User, DefaultWeightedEdge> grafo;
 	private YelpDao dao;
 	private List<User> utenti;
+	private Map<String, User> idMap;
 	
 	public String creaGrafo(int minRevisioni, int anno) {
 		dao = new YelpDao();
-		grafo = new SimpleWeightedGraph<>(DefaultWeightedEdge.class);
+		idMap = new HashMap<>();
 		
-		utenti = dao.getUsersWithReviews(minRevisioni); // Sono i vertici del grafo
+		for(User user : dao.getAllUsers()) {
+			idMap.put(user.getUserId(), user);
+		}
+		
+		grafo = new SimpleWeightedGraph<>(DefaultWeightedEdge.class);
+		utenti = dao.getVertici(idMap, minRevisioni);
+		//utenti = dao.getUsersWithReviews(minRevisioni); // Sono i vertici del grafo
 		Graphs.addAllVertices(grafo, utenti);
 		
 		for(User u1 : utenti) {
